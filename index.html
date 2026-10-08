@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Spin</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --ios-bg: #000000; --ios-card: #1C1C1E; --ios-blue: #0A84FF; --ios-green: #30D158; --ios-text: #FFFFFF; }
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--ios-bg); color: var(--ios-text); margin: 0; padding: 20px; text-align: center; }
+        .header { display: flex; align-items: center; justify-content: space-between; background: var(--ios-card); padding: 16px; border-radius: 20px; margin-bottom: 30px; }
+        .user { display: flex; align-items: center; gap: 12px; text-align: left; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: #3A3A3C; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .bal { font-size: 14px; color: var(--ios-green); font-weight: 500; }
+        .machine { background: var(--ios-card); padding: 30px 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .slots { display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; }
+        .slot { background: #2C2C2E; border-radius: 16px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3); }
+        .slot svg { width: 40px; height: 40px; }
+        button { background: var(--ios-blue); color: #fff; border: none; padding: 18px; font-size: 17px; font-weight: 600; border-radius: 16px; width: 100%; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.96); }
+        button:disabled { opacity: 0.5; }
+        #msg { margin-top: 20px; font-size: 15px; color: #EBEBF599; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="header">
+        <div class="user">
+            <div class="avatar" id="av"><svg style="margin:10px;" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div>
+                <div class="name" id="un">User</div>
+                <div class="bal" id="bal">৳0.00</div>
+            </div>
+        </div>
+        <div onclick="tg.close()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EBEBF599" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+
+    <div class="machine">
+        <div class="slots">
+            <div class="slot" id="s1"><svg viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="slot" id="s2"><svg viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="slot" id="s3"><svg viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+        </div>
+        <button id="spinBtn" onclick="spin()">Spin Now</button>
+    </div>
+    <div id="msg">Cost deducted automatically.</div>
+
+    <script>
+        const tg = window.Telegram.WebApp; tg.expand();
+        const _0x2 = ["aHR0cHM6Ly9nbWFpbHNlbGwuc29kbnMtY3lvdS53b3JrZXJzLmRldi9hcGk="];
+        const getApi = (p) => atob(_0x2[0]) + p;
+
+        const svgs = {
+            star: `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD60A" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+            zap: `<svg viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            gem: `<svg viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2"><polygon points="6 3 18 3 22 9 12 22 2 9"/></svg>`
+        };
+        const keys = Object.keys(svgs);
+
+        if(tg.initDataUnsafe?.user) {
+            document.getElementById('un').innerText = tg.initDataUnsafe.user.first_name;
+            fetch(getApi('/user'), { method:"POST", body: JSON.stringify({initData: tg.initData})})
+                .then(r=>r.json()).then(d=>{ document.getElementById('bal').innerText=`৳${d.balance}`; if(d.photo) document.getElementById('av').innerHTML=`<img src="${d.photo}">`; });
+        }
+
+        async function spin() {
+            if(!tg.initData) return;
+            const btn = document.getElementById('spinBtn'); btn.disabled = true; btn.innerText = "Spinning...";
+            let i = setInterval(() => {
+                document.getElementById('s1').innerHTML = svgs[keys[Math.floor(Math.random()*keys.length)]];
+                document.getElementById('s2').innerHTML = svgs[keys[Math.floor(Math.random()*keys.length)]];
+                document.getElementById('s3').innerHTML = svgs[keys[Math.floor(Math.random()*keys.length)]];
+            }, 80);
+
+            try {
+                const res = await fetch(getApi('/spin'), { method: "POST", body: JSON.stringify({ initData: tg.initData }) });
+                const data = await res.json();
+                clearInterval(i); btn.disabled = false; btn.innerText = "Spin Again";
+                if(data.error) { document.getElementById('msg').innerHTML = `<span style="color:#FF453A;">${data.error}</span>`; return; }
+                
+                document.getElementById('s1').innerHTML = svgs[data.combo[0]]; document.getElementById('s2').innerHTML = svgs[data.combo[1]]; document.getElementById('s3').innerHTML = svgs[data.combo[2]];
+                document.getElementById('bal').innerText = `৳${data.newBalance}`;
+
+                if(data.won > 0) { document.getElementById('msg').innerHTML = `<span style="color:var(--ios-green);">You Won ৳${data.won}!</span>`; tg.HapticFeedback.notificationOccurred("success"); } 
+                else { document.getElementById('msg').innerText = "Try again!"; tg.HapticFeedback.notificationOccurred("error"); }
+            } catch(e) { clearInterval(i); btn.disabled = false; btn.innerText = "Spin Now"; }
+        }
+    </script>
+</body>
+</html>
